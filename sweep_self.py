@@ -2,8 +2,8 @@ import os
 import re
 import discord
 from dotenv import load_dotenv
-from datetime import datetime, timezone
-
+from datetime import datetime
+import pytz
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ def parse_latest_date(message_content: str) -> datetime | None:
         if match:
             try:
                 dt = datetime.strptime(match.group(1), "%d/%m/%Y %I:%M %p").replace(
-                    tzinfo=timezone.utc
+                    tzinfo=pytz.timezone("Asia/Singapore")
                 )
                 if latest is None or dt > latest:
                     latest = dt
@@ -54,7 +54,7 @@ async def on_ready():
             latest_date = parse_latest_date(last_msg.content)
 
         if latest_date is None:
-            latest_date = datetime.min.replace(tzinfo=timezone.utc)
+            latest_date = datetime.min.replace(tzinfo=pytz.timezone("Asia/Singapore"))
 
         pattern_full = re.compile(r"(\.|\b)nt\s+(\d+\s+\d+)", re.IGNORECASE)
         matching_messages: list[discord.Message] = []
@@ -70,8 +70,8 @@ async def on_ready():
         matching_messages.sort(key=lambda m: m.created_at)
         lines: list[str] = []
         for m in matching_messages:
-            utc_time = m.created_at.astimezone(timezone.utc)
-            formatted_time = fmt_date(utc_time)
+            sg_time = m.created_at.astimezone(pytz.timezone("Asia/Singapore"))
+            formatted_time = fmt_date(sg_time)
             data = pattern_full.search(m.content).group(2)
             lines.append(f"{formatted_time} {data}")
 
